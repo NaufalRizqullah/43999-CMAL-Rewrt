@@ -11,7 +11,9 @@ from helpers.utils import timing_decorator, cosine_anneal_schedule, map_generate
 @timing_decorator
 def train(model, dataLoader, nb_epoch, batch_size, store_name, resume=False, start_epoch=0, model_path=None, data_path = ''):
     # Create empty results dictionary
-    results = {"train_loss": [],
+    results = {
+        "epoch": 0,
+        "train_loss": [],
         "train_acc": [],
         "val_loss": [],
         "val_acc": []
@@ -89,6 +91,10 @@ def train(model, dataLoader, nb_epoch, batch_size, store_name, resume=False, sta
 
             if use_cuda:
                 inputs, targets = inputs.to(device), targets.to(device)
+
+            # Trying Fix 1
+            # inputs = inputs.clone().detach().requires_grad_(True)
+            # targets = targets.clone().detach().requires_grad_(True)
 
             for nlr in range(len(optimizer.param_groups)):
                 optimizer.param_groups[nlr]["lr"] = cosine_anneal_schedule(epoch, nb_epoch, lr[nlr])
@@ -204,33 +210,30 @@ def train(model, dataLoader, nb_epoch, batch_size, store_name, resume=False, sta
         with open(exp_dir + '/results_test.txt', 'a') as file:
                 file.write('Iteration %d, test_acc_combined = %.5f, test_loss = %.6f\n' % (
                     epoch, val_acc_com, val_loss))
-
+        
+        MODEL_FILENAME = f"/model_{epoch}_epoch.pth"
+        
+        # Only Save model if better in validation
         if val_acc_com > max_val_acc:
             max_val_acc = val_acc_com
 
             net.cpu()
 
             print(f"[INFO] Saving Model cause Better Validation ACC")
-            torch.save(net, './' + store_name + '/model.pth')
-
-            net.to(device)
-        else:
-            net.cpu()
-
-            print(f"[INFO] Saving Model in Epoch Without Evaluation Test")
-            torch.save(net, './' + store_name + '/model.pth')
+            torch.save(net, './' + store_name + MODEL_FILENAME)
 
             net.to(device)
 
         # Update results dictionary
+        results["epoch"] = epoch
         results["train_loss"].append(train_loss)
         results["train_acc"].append(train_acc)
         results["val_loss"].append(val_loss)
         results["val_acc"].append(val_acc_com)
 
-        # Save to JSON file eahc Epoch
+        # Save to JSON file
         with open(exp_dir + '/results.json', 'w') as json_file:
             json.dump(results, json_file)
 
-
+    # return some value to eval later (results of data loss acc)
     return results
