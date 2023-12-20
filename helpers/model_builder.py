@@ -65,5 +65,6 @@ def create_model(params: Dict, download_weight: bool = True):
     """
     layers = create_net_layers(model_params=params, download_pretrained_tresnet=download_weight)
     model = network_wrapper.NetworkWrapper(net_layers=layers, num_classes=params["num_classes"])
+    print(f"[INFO] COmplete Creating Model CMAL.")
     return model
 

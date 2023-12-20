@@ -1,14 +1,24 @@
 import torch
 import os
+import json
 
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
 
-from helpers.utils import cosine_anneal_schedule, map_generate, attention_im, highlight_im, test_tresnetl
+from helpers.utils import timing_decorator, cosine_anneal_schedule, map_generate, attention_im, highlight_im, test_tresnetl
 
+@timing_decorator
 def train(model, dataLoader, nb_epoch, batch_size, store_name, resume=False, start_epoch=0, model_path=None, data_path = ''):
+    # Create empty results dictionary
+    results = {"train_loss": [],
+        "train_acc": [],
+        "val_loss": [],
+        "val_acc": []
+    }
+
     exp_dir = store_name
+
     try:
         os.makedirs(exp_dir, exist_ok=True)
     except FileExistsError:
@@ -79,10 +89,6 @@ def train(model, dataLoader, nb_epoch, batch_size, store_name, resume=False, sta
 
             if use_cuda:
                 inputs, targets = inputs.to(device), targets.to(device)
-
-            # Trying Fix 1
-            # inputs = inputs.clone().detach().requires_grad_(True)
-            # targets = targets.clone().detach().requires_grad_(True)
 
             for nlr in range(len(optimizer.param_groups)):
                 optimizer.param_groups[nlr]["lr"] = cosine_anneal_schedule(epoch, nb_epoch, lr[nlr])
@@ -189,26 +195,25 @@ def train(model, dataLoader, nb_epoch, batch_size, store_name, resume=False, sta
                 f'Loss_concat: {train_loss5 / (idx + 1):.5f} |\n'
             )
 
-        if epoch < 5 or epoch >= 100:
 
-            print(f"[INFO] Evaluation Test on Epoch: {epoch}")
-            val_acc_com, val_loss = test_tresnetl(net, CELoss, 3, data_path+'/test')
-
-
-            if val_acc_com > max_val_acc:
-                max_val_acc = val_acc_com
-
-                net.cpu()
-
-                print(f"[INFO] Saving Model in Epoch < 5 or epoch > 100 with greater than threshold")
-                torch.save(net, './' + store_name + '/model.pth')
-
-                net.to(device)
-
-            with open(exp_dir + '/results_test.txt', 'a') as file:
+        print(f"[INFO] Testing...")
+        print(f"[INFO] Evaluation Test on Epoch: {epoch}")
+        val_acc_com, val_loss = test_tresnetl(net, CELoss, 3, data_path+'/test')
+        print(f"Validation Combine Loss: {val_acc_com} | Validation Loss: {val_loss} \n")
+        
+        with open(exp_dir + '/results_test.txt', 'a') as file:
                 file.write('Iteration %d, test_acc_combined = %.5f, test_loss = %.6f\n' % (
                     epoch, val_acc_com, val_loss))
 
+        if val_acc_com > max_val_acc:
+            max_val_acc = val_acc_com
+
+            net.cpu()
+
+            print(f"[INFO] Saving Model cause Better Validation ACC")
+            torch.save(net, './' + store_name + '/model.pth')
+
+            net.to(device)
         else:
             net.cpu()
 
@@ -216,3 +221,16 @@ def train(model, dataLoader, nb_epoch, batch_size, store_name, resume=False, sta
             torch.save(net, './' + store_name + '/model.pth')
 
             net.to(device)
+
+        # Update results dictionary
+        results["train_loss"].append(train_loss)
+        results["train_acc"].append(train_acc)
+        results["val_loss"].append(val_loss)
+        results["val_acc"].append(val_acc_com)
+
+        # Save to JSON file eahc Epoch
+        with open(exp_dir + '/results.json', 'w') as json_file:
+            json.dump(results, json_file)
+
+
+    return results

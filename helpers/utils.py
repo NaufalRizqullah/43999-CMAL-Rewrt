@@ -229,8 +229,6 @@ def test_tresnetl(net, criterion, batch_size, test_path):
 
         # Turn off gradient computation for inference
         with torch.inference_mode():
-            # Convert inputs and targets to PyTorch tensors
-            inputs, targets = torch.tensor(inputs), torch.tensor(targets)
 
             # Forward pass
             output_1, output_2, output_3, output_concat, map1, map2, map3 = net(inputs)
