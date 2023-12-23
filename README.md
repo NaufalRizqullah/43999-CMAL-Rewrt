@@ -2,7 +2,7 @@
 
 **Source**
 
-[CMAL-Net](https://github.com/Dichao-Liu/CMAL) | [TResNet](https://github.com/Alibaba-MIIL/TResNet)
+[Original Paper](https://www.sciencedirect.com/science/article/pii/S0031320323002509) | [CMAL-Net](https://github.com/Dichao-Liu/CMAL) | [TResNet](https://github.com/Alibaba-MIIL/TResNet)
 
 
 

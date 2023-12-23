@@ -9,7 +9,7 @@ from torchvision import transforms, datasets
 from helpers.utils import timing_decorator, cosine_anneal_schedule, map_generate, attention_im, highlight_im, test_tresnetl
 
 @timing_decorator
-def train(model, dataLoader, nb_epoch, batch_size, store_name, resume=False, start_epoch=0, model_path=None, data_path = ''):
+def train(model, dataLoader, nb_epoch, batch_size, store_name, start_epoch=0,  resume=False, model_path=None, data_path = ''):
     # Create empty results dictionary
     results = {
         "epoch": 0,
@@ -34,9 +34,16 @@ def train(model, dataLoader, nb_epoch, batch_size, store_name, resume=False, sta
     print("[INFO] DataLoader created.")
 
     print(f"[INFO] Initialize net model.")
-    net = model
+    if resume:
+        # Resume training by loading the saved model
+        print("[STATUS] Loading pre-trained model.")
+        net = torch.load(model_path)
+    else:
+       # Start training from scratch using provided model
+        print("[STATUS] Using provided model parameters.")
+        net = model
 
-    print(f"[INFO] Make net model Parallel.")
+    print("[INFO] Making the model parallel.")
     netp = torch.nn.DataParallel(net, device_ids=[0])
 
     print(f"[INFO] Set Device net model.")
