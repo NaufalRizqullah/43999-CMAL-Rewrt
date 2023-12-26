@@ -69,9 +69,9 @@ def inference(
     return pred_labels_and_probs, label
 
 if __name__ == "__main__":
-    # device = "cuda" if torch.cuda.is_available() else "cpu"
+    # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     # force using cpu
-    device = "cpu"
+    device = torch.device('cpu')
 
     probs_label, label = inference(
         path_image=PATH_IMAGE_INFER,
