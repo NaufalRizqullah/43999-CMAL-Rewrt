@@ -20,7 +20,7 @@ transform_image = transforms.Compose([
 
 # Model setup
 TRAINED_MODEL = pathlib.Path("weights/SW_training_10.pth")
-net = torch.load(TRAINED_MODEL, map_location=torch.device("cpu"))
+net = torch.load(TRAINED_MODEL)
 
 # Setup class names
 CLASS_NAMES_PATH = pathlib.Path("test/class_names_stanford_cars.txt")
@@ -52,7 +52,9 @@ def inference(
     # using inference_mode 
     with torch.inference_mode():
         # do the forward pass
-        logist = model(img)
+        _, _, _, output_concat, _, _, _ = model(img)
+
+        logist = output_concat
     
     # convert `logist` into `prediction probabilities`
     y_probs = torch.softmax(logist, dim=1)
@@ -69,9 +71,8 @@ def inference(
     return pred_labels_and_probs, label
 
 if __name__ == "__main__":
-    # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    # force using cpu
-    device = torch.device('cpu')
+    # only works if using CUDA. cause TResNet using CUDA
+    device = torch.device("cuda")
 
     probs_label, label = inference(
         path_image=PATH_IMAGE_INFER,
@@ -83,5 +84,3 @@ if __name__ == "__main__":
     print(f"Predict is: {label}")
     print("\n")
     print(probs_label)
-
-    
