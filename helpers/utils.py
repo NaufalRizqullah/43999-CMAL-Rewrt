@@ -91,7 +91,7 @@ def attention_im(images, attention_map, theta=0.5, padding_ratio=0.1):
 
         # Upsample the attention map to match image dimensions
         map_tpm = attention_map[batch_index].unsqueeze(0).unsqueeze(0)
-        map_tpm = torch.nn.functional.upsample_bilinear(map_tpm, size=(imgH, imgW)).squeeze()
+        map_tpm = torch.nn.functional.interpolate(map_tpm, size=(imgH, imgW), mode='bilinear', align_corners=False).squeeze()
 
         # Normalize attention map values to [0, 1]
         map_tpm = (map_tpm - map_tpm.min()) / (map_tpm.max() - map_tpm.min() + 1e-6)
@@ -110,7 +110,7 @@ def attention_im(images, attention_map, theta=0.5, padding_ratio=0.1):
 
         # Extract and upsample the region of interest in the image
         image_tmp = image_tmp[:, height_min:height_max, width_min:width_max].unsqueeze(0)
-        image_tmp = torch.nn.functional.upsample_bilinear(image_tmp, size=(imgH, imgW)).squeeze()
+        image_tmp = torch.nn.functional.interpolate(image_tmp, size=(imgH, imgW), mode='bilinear', align_corners=False).squeeze()
 
         # Update the modified image in the images tensor
         images[batch_index] = image_tmp
@@ -144,17 +144,17 @@ def highlight_im(images, attention_map, attention_map2, attention_map3, theta=0.
 
         # Upsample and normalize the first attention map
         map_tpm = attention_map[batch_index].unsqueeze(0).unsqueeze(0)
-        map_tpm = torch.nn.functional.upsample_bilinear(map_tpm, size=(imgH, imgW)).squeeze()
+        map_tpm = torch.nn.functional.interpolate(map_tpm, size=(imgH, imgW), mode='bilinear', align_corners=False).squeeze()
         map_tpm = (map_tpm - map_tpm.min()) / (map_tpm.max() - map_tpm.min() + 1e-6)
 
         # Upsample and normalize the second attention map
         map_tpm2 = attention_map2[batch_index].unsqueeze(0).unsqueeze(0)
-        map_tpm2 = torch.nn.functional.upsample_bilinear(map_tpm2, size=(imgH, imgW)).squeeze()
+        map_tpm2 = torch.nn.functional.interpolate(map_tpm2, size=(imgH, imgW), mode='bilinear', align_corners=False).squeeze()
         map_tpm2 = (map_tpm2 - map_tpm2.min()) / (map_tpm2.max() - map_tpm2.min() + 1e-6)
 
         # Upsample and normalize the third attention map
         map_tpm3 = attention_map3[batch_index].unsqueeze(0).unsqueeze(0)
-        map_tpm3 = torch.nn.functional.upsample_bilinear(map_tpm3, size=(imgH, imgW)).squeeze()
+        map_tpm3 = torch.nn.functional.interpolate(map_tpm3, size=(imgH, imgW), mode='bilinear', align_corners=False).squeeze()
         map_tpm3 = (map_tpm3 - map_tpm3.min()) / (map_tpm3.max() - map_tpm3.min() + 1e-6)
 
         # Combine the attention maps
@@ -177,7 +177,7 @@ def highlight_im(images, attention_map, attention_map2, attention_map3, theta=0.
 
         # Extract and upsample the region of interest in the image
         image_tmp = image_tmp[:, height_min:height_max, width_min:width_max].unsqueeze(0)
-        image_tmp = torch.nn.functional.upsample_bilinear(image_tmp, size=(imgH, imgW)).squeeze()
+        image_tmp = torch.nn.functional.interpolate(image_tmp, size=(imgH, imgW), mode='bilinear', align_corners=False).squeeze()
 
         # Update the modified image in the images tensor
         images[batch_index] = image_tmp
